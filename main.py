@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import PIL
+import base64
+import os
 
 # --------------------------------------------------
 # 1. SET PAGE CONFIG & TIAP HARI KOPI THEME CSS
@@ -14,7 +16,7 @@ st.markdown("""
 
 html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Montserrat', sans-serif;
-    background-color: #121212 !important;
+    background-color: #0b131f !important;
 }
 
 .block-container {
@@ -29,7 +31,7 @@ html, body, [data-testid="stAppViewContainer"] {
     justify-content: space-between;
     align-items: center;
     padding: 20px 0;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid #1a2636;
     margin-bottom: 40px;
 }
 .nk-logo {
@@ -39,13 +41,13 @@ html, body, [data-testid="stAppViewContainer"] {
     letter-spacing: 2px;
 }
 .nk-logo span {
-    color: #E5A93B; /* Branded Gold */
+    color: #004481; /* Branded Logo Blue */
 }
 .nk-nav {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 1.5px;
-    color: #b3b3b3;
+    color: #92a4b8;
 }
 
 /* HERO BANNER TEXT */
@@ -58,7 +60,7 @@ html, body, [data-testid="stAppViewContainer"] {
     letter-spacing: -1px;
 }
 .nk-hero-subtitle {
-    color: #E5A93B; 
+    color: #004481; /* Branded Logo Blue */
     font-size: 18px;
     font-weight: 600;
     text-transform: uppercase;
@@ -94,8 +96,8 @@ html, body, [data-testid="stAppViewContainer"] {
 .nk-menu-price {
     font-size: 18px;
     font-weight: 700;
-    color: #E5A93B; 
-    background-color: #111111;
+    color: #ffffff; 
+    background-color: #004481; /* Branded Logo Blue */
     display: inline-block;
     padding: 2px 12px;
     border-radius: 4px;
@@ -103,7 +105,7 @@ html, body, [data-testid="stAppViewContainer"] {
 
 /* TAB ADJUSTMENTS */
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #1a1a1a;
+    background-color: #121e2e;
     padding: 8px;
     border-radius: 8px;
 }
@@ -112,14 +114,14 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: 600;
 }
 .stTabs [aria-selected="true"] {
-    color: #E5A93B !important; 
-    background-color: #262626;
+    color: #ffffff !important; 
+    background-color: #004481; /* Branded Logo Blue */
     border-radius: 4px;
 }
 
 div.stButton > button {
-    background-color: #E5A93B !important; 
-    color: #111111 !important;
+    background-color: #004481 !important; /* Branded Logo Blue */
+    color: #ffffff !important;
     border: none !important;
     border-radius: 6px !important;
     padding: 10px 28px !important;
@@ -127,13 +129,13 @@ div.stButton > button {
     width: 100%;
 }
 div.stButton > button:hover {
-    background-color: #c9922b !important;
+    background-color: #003361 !important;
 }
 
 /* GOOGLE REVIEWS INTERFACE STYLING */
 .google-review-card {
-    background-color: #202124;
-    border: 1px solid #3c4043;
+    background-color: #121e2e;
+    border: 1px solid #1a2636;
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 16px;
@@ -191,7 +193,7 @@ div.stButton > button:hover {
     margin-left: 4px;
 }
 .gr-badge {
-    background-color: #3c4043;
+    background-color: #1a2636;
     color: #e8eaed;
     font-size: 10px;
     font-weight: bold;
@@ -219,13 +221,13 @@ div.stButton > button:hover {
     border-radius: 6px;
 }
 .gr-aspects {
-    background-color: #171717;
+    background-color: #0b131f;
     border-radius: 6px;
     padding: 8px 12px;
     font-size: 12px;
     color: #bdc1c6;
     margin-top: 8px;
-    border: 1px solid #2d2f31;
+    border: 1px solid #1a2636;
 }
 .gr-footer {
     display: flex;
@@ -233,7 +235,7 @@ div.stButton > button:hover {
     gap: 16px;
     margin-top: 12px;
     padding-top: 8px;
-    border-top: 1px solid #3c4043;
+    border-top: 1px solid #1a2636;
     color: #9aa0a6;
     font-size: 13px;
 }
@@ -248,6 +250,15 @@ div.stButton > button:hover {
 }
 </style>
 """, unsafe_allow_html=True)
+
+# --- HELPER FUNCTION: BASE64 ENCODING ---
+def get_b64_image(img_path):
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as image_file:
+            encoded = base64.b64encode(image_file.read()).decode()
+            ext = img_path.split(".")[-1]
+            return f"data:image/{ext};base64,{encoded}"
+    return "https://via.placeholder.com/600x450"
 
 # --- INITIALIZE STATE ARRAYS ---
 if "total_reviews" not in st.session_state:
@@ -285,32 +296,59 @@ if selected_route == "HOME + MENU":
     st.markdown('<div class="nk-hero-title">Local Coffee, Premium Vibes.</div>', unsafe_allow_html=True)
     st.markdown('<div class="nk-hero-subtitle">Every Single Day Perfection</div>', unsafe_allow_html=True)
 
-    col_img1, col_img2 = st.columns([1, 1], gap="large")
-    SQUARE_SIZE = 400 
+    # 1. Fetch targeted sliding graphics for Home hero banner
+    home_images = [
+        "images/tiapharibefore.jpg",
+        "images/tiapharifront.jpg",
+        "images/tiapharigrab.jpg",
+        "images/tiapharibestdrinks.jpg"
+    ]
+    h_b64 = [get_b64_image(p) for p in home_images]
 
-    with col_img1:
-        try:
-            img1 = PIL.Image.open("images/tiapharifront.jpg")
-            w, h = img1.size
-            min_dim = min(w, h)
-            img1_cropped = img1.crop(((w - min_dim) / 2, (h - min_dim) / 2, (w + min_dim) / 2, (h + min_dim) / 2))
-            st.image(img1_cropped.resize((SQUARE_SIZE, SQUARE_SIZE), PIL.Image.Resampling.LANCZOS), caption="Every Single Day Perfection", width=SQUARE_SIZE)
-        except Exception:
-            st.image("https://via.placeholder.com/400", caption="Every Single Day Perfection", width=SQUARE_SIZE)
+    # 2. Infinite Loop pure CSS Slider (Transitions every 1.5s, total timeline 6s)
+    home_slider_html = f"""
+    <style>
+        .home-slider-wrapper {{
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto 40px auto;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            background-color: #121e2e;
+        }}
+        .home-slider-track {{
+            display: flex;
+            width: 400%;
+            animation: homeSlideLoop 6s cubic-bezier(0.85, 0, 0.15, 1) infinite;
+        }}
+        .home-slider-track img {{
+            width: 25%;
+            height: 480px;
+            object-fit: cover;
+        }}
+        @keyframes homeSlideLoop {{
+            0%, 20%   {{ transform: translateX(0); }}
+            25%, 45%  {{ transform: translateX(-25%); }}
+            50%, 70%  {{ transform: translateX(-50%); }}
+            75%, 95%  {{ transform: translateX(-75%); }}
+            100%      {{ transform: translateX(0); }}
+        }}
+    </style>
+    <div class="home-slider-wrapper">
+        <div class="home-slider-track">
+            <img src="{h_b64[0]}">
+            <img src="{h_b64[1]}">
+            <img src="{h_b64[2]}">
+            <img src="{h_b64[3]}">
+        </div>
+    </div>
+    """
+    st.components.v1.html(home_slider_html, height=500)
 
-    with col_img2:
-        try:
-            img2 = PIL.Image.open("images/tiapharibestdrinks.jpg")
-            w, h = img2.size
-            min_dim = min(w, h)
-            img2_cropped = img2.crop(((w - min_dim) / 2, (h - min_dim) / 2, (w + min_dim) / 2, (h + min_dim) / 2))
-            st.image(img2_cropped.resize((SQUARE_SIZE, SQUARE_SIZE), PIL.Image.Resampling.LANCZOS), caption="Your Cozy Space", width=SQUARE_SIZE)
-        except Exception:
-            st.image("https://via.placeholder.com/400", caption="Your Cozy Space", width=SQUARE_SIZE)
-
-    st.markdown("<hr style='border-color: #222; margin: 60px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: #1a2636; margin: 60px 0;'>", unsafe_allow_html=True)
     st.markdown("<h2 style='color:#ffffff; font-weight:800; text-align:center;'>Explore Our Signature Menu</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#888888; margin-bottom:30px;'>Crafted to give you the perfect boost</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; color:#92a4b8; margin-bottom:30px;'>Crafted to give you the perfect boost</p>", unsafe_allow_html=True)
 
     menu_items = [
         {"name": "Matcha Latte", "category": "Beverage", "price": 9, "image": "images/tiapharimatchalatte.jpg"},
@@ -395,7 +433,7 @@ elif selected_route == "FEEDBACK":
             <div class="gr-stars-row">
                 <span class="gr-stars">★★★★★</span>
                 <span class="gr-time">3 minggu yang lalu</span>
-                <span class="gr-badge" style="background-color:#3c4043; color:#e8eaed; font-size:9px; padding:2px 5px; border-radius:3px;">BAHARU</span>
+                <span class="gr-badge" style="background-color:#1a2636; color:#e8eaed; font-size:9px; padding:2px 5px; border-radius:3px;">BAHARU</span>
             </div>
             <div class="gr-text">
                 Saya kenal TiapHari ni semenjak 2022. Speciality mmg Nisse Latte dan Kacang Phool. Walaupun KB ni byk kedai kopi, tp tak boleh lagi lawan Nisse latte TiapHari (ice/hot dua2 sedap) dan takde tempat lain nak cari kacang phool. Bukan tak ... <span style="color:#8ab4f8; cursor:pointer;">Lagi</span>
@@ -469,16 +507,12 @@ elif selected_route == "FEEDBACK":
                 st.error("Please fill in both your name and review text before submitting.")
 
 elif selected_route == "ABOUT US":
-    import base64
-    import os
-
     st.markdown("<h3 style='color:#ffffff; font-weight:700; margin-bottom:20px;'>About Us</h3>", unsafe_allow_html=True)
     st.info("Every single cup carries raw passion, home comfort, and a little bit of daily happiness.")
 
-    st.markdown("<hr style='border-color: #222; margin: 40px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: #1a2636; margin: 40px 0;'>", unsafe_allow_html=True)
     st.header("📸 Gallery and Our Story")
 
-    # 1. Image List
     slider_images = [
         "images/tiapharibefore.jpg",
         "images/tiapharifront.jpg",
@@ -487,57 +521,40 @@ elif selected_route == "ABOUT US":
         "images/tiapharipasta.jpg",
         "images/tiapharisnack.jpg",
         "images/tiapharikacangphool.jpg",
-        "images/veggiespringrolls.jpg",       
+        "images/veggiespringrolls.jpg",      
         "images/crispyveggiecucur.jpg"       
     ]
 
-    # 2. Convert to Base64 safely
-    b64_srcs = []
-    for img_path in slider_images:
-        if os.path.exists(img_path):
-            with open(img_path, "rb") as image_file:
-                encoded = base64.b64encode(image_file.read()).decode()
-                ext = img_path.split(".")[-1]
-                b64_srcs.append(f"data:image/{ext};base64,{encoded}")
-        else:
-            b64_srcs.append("https://via.placeholder.com/350x350")
+    b64_srcs = [get_b64_image(p) for p in slider_images]
 
-    # 3. Fixed HTML/CSS Slider Container Layout
     slider_html = f"""
     <style>
         .slider-container {{
             width: 100%;
             overflow: hidden;
             border-radius: 12px;
-            background-color: #000000;
+            background-color: #0b131f;
             padding: 15px 0;
         }}
         .slider-track {{
             display: flex;
-            width: 300%; /* 3 pages/view blocks total */
+            width: 300%; 
             gap: 16px;
             padding-left: 8px;
             padding-right: 8px;
             box-sizing: border-box;
-            animation: slide-9-images 6s ease-in-out infinite; /* Total loop timing */
+            animation: slide-9-images 6s ease-in-out infinite; 
         }}
         .slider-track:hover {{
             animation-play-state: paused;
         }}
         .slider-track img {{
-            /* Divide 100% viewport width by 3 images, subtracting space for the gaps */
             width: calc(33.333vw - 22px); 
             height: 280px;
             object-fit: cover;
             border-radius: 8px;
             flex-shrink: 0;
         }}
-        
-        /* Animation Timing Matrix for 1.5-second viewing per block:
-           Block 1 (Images 1-3): 0% to 25% duration
-           Block 2 (Images 4-6): 33% to 58% duration
-           Block 3 (Images 7-9): 66% to 91% duration
-        */
         @keyframes slide-9-images {{
             0%, 25% {{ transform: translateX(0); }}
             33%, 58% {{ transform: translateX(calc(-100vw + 8px)); }}
@@ -561,11 +578,10 @@ elif selected_route == "ABOUT US":
         </div>
     </div>
     """
-    
     st.components.v1.html(slider_html, height=315)
 
     st.markdown("""
-    <div style='background-color:#E5A93B; color:#111111; padding:20px; border-radius:15px; margin-top:25px; text-align:center; font-size:16px; font-weight:600;'>
+    <div style='background-color:#004481; color:#ffffff; padding:20px; border-radius:15px; margin-top:25px; text-align:center; font-size:16px; font-weight:600;'>
         ✨ Our journey started from a small idea and grew into a cozy café loved by many. <br>
         Every cup of coffee we serve carries passion, comfort, and a little bit of happiness ☕💛
     </div>
@@ -590,7 +606,7 @@ elif selected_route == "LOG IN":
                 "Customer Type": list(st.session_state.customer_metrics.keys()),
                 "Count": list(st.session_state.customer_metrics.values())
             })
-            fig = px.pie(chart_df, values="Count", names="Customer Type", title="Customer Demographics Breakdown", color_discrete_sequence=["#E5A93B", "#ffffff"])
+            fig = px.pie(chart_df, values="Count", names="Customer Type", title="Customer Demographics Breakdown", color_discrete_sequence=["#004481", "#ffffff"])
             fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#ffffff', height=280, margin=dict(t=50, b=0, l=0, r=0))
             st.plotly_chart(fig, use_container_width=True)
             
